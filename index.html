@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Cala a Boca, Cruzado!</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔨</text></svg>">
+
+    <!-- Three.js and Tween.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+    <!-- Cache Control for Dev -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="stylesheet" href="style.css?v=40" />
+</head>
+
+<body>
+    <!-- Game Container Stage (Centers in Fullscreen / ERP Viewport) -->
+    <div class="game-stage">
+        <div id="game-window" class="game-window">
+            <!-- ERP Window Close Button (Matches Host ERP Window Header) -->
+            <button id="erp-close-btn" class="erp-close-btn" title="Fechar Jogo" aria-label="Fechar">&times;</button>
+
+            <!-- Game Viewport: Clipped to Frame Borders -->
+            <div class="game-viewport">
+                <!-- 3D Canvas Viewport -->
+                <div id="canvas-container"></div>
+
+                <!-- Retro CRT Scanlines & Vignette -->
+                <div class="crt-overlay"></div>
+                <div id="fury-overlay" class="fury-overlay"></div>
+
+                <!-- UI Overlay / HUD -->
+                <div class="ui-container">
+                    <!-- Top Arcade Bar / Complete Unified HUD -->
+                    <header class="arcade-header">
+                        <!-- Left: Brand Logo on Top, and Luana Stress Gauge Below -->
+                        <div class="header-left">
+                            <div class="brand-title-box">
+                                <h1 class="glitch-title">CALA A BOCA, CRUZADO!</h1>
+                            </div>
+                            <div class="stress-meter-panel" id="stress-meter-panel">
+                                <div class="luana-avatar-frame" title="Luana - Nível de Estresse">
+                                    <img id="luana-portrait" src="assets/img/luana_head.png" alt="Luana"
+                                        class="luana-img" />
+                                    <div class="avatar-flames" id="avatar-flames"></div>
+                                </div>
+                                <div class="stress-panel-body">
+                                    <div class="stress-header-row">
+                                        <span class="stress-title">FÚRIA:</span>
+                                        <span class="stress-val" id="stress-percentage">0%</span>
+                                    </div>
+                                    <div class="stress-bar-container">
+                                        <div class="stress-bar-fill" id="stress-fill"></div>
+                                    </div>
+                                    <div class="stress-footer-row">
+                                        <span class="mood-text" id="luana-mood">"POSTURA MANTIDA"</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Arcade Digital Displays (Responsive Grid / Row) -->
+                        <div class="hud-meters">
+                            <div class="hud-card">
+                                <span class="hud-label">TEMPO</span>
+                                <div class="hud-digital" id="time-display">0<small>s</small></div>
+                            </div>
+
+                            <div class="hud-card highlight">
+                                <span class="hud-label"><span class="lbl-full">PONTUAÇÃO</span><span
+                                        class="lbl-short">PTS</span></span>
+                                <div class="hud-digital cyan" id="score-display">0000</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <span class="hud-label">COMBO</span>
+                                <div class="hud-digital combo" id="combo-display">0x</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <span class="hud-label"><span class="lbl-full">RECORD</span><span
+                                        class="lbl-short">REC</span></span>
+                                <div class="hud-digital gold" id="record-display">0</div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Floating Comic Shoutout -->
+                    <div id="comic-shout" class="comic-shout hidden">
+                        <span id="shout-text">CALA A BOCA, CRUZADO!</span>
+                    </div>
+
+                    <!-- Bottom Controls & Credits -->
+                    <footer class="arcade-footer">
+                        <div class="footer-buttons-row">
+                            <div class="controls-left">
+                                <button id="start-btn" class="arcade-btn primary">
+                                    <span class="btn-text">JOGAR!</span>
+                                </button>
+                                <button id="rules-btn" class="arcade-btn gray">
+                                    <span class="btn-text">REGRAS</span>
+                                </button>
+                                <button id="rank-menu-btn" class="arcade-btn yellow crown-btn" title="Classificação / Rank" aria-label="Ver Rank">
+                                    <svg class="crown-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <defs>
+                                            <linearGradient id="crown-gold-grad" x1="16" y1="4" x2="16" y2="28" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0%" stop-color="#fff8b3" />
+                                                <stop offset="25%" stop-color="#ffd214" />
+                                                <stop offset="75%" stop-color="#f39200" />
+                                                <stop offset="100%" stop-color="#b85d00" />
+                                            </linearGradient>
+                                            <linearGradient id="crown-band-grad" x1="16" y1="21" x2="16" y2="27" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0%" stop-color="#ffe875" />
+                                                <stop offset="100%" stop-color="#c96800" />
+                                            </linearGradient>
+                                            <filter id="crown-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                                <feDropShadow dx="0" dy="1.5" stdDeviation="0.8" flood-color="#401a00" flood-opacity="0.85" />
+                                            </filter>
+                                        </defs>
+                                        <g filter="url(#crown-shadow)">
+                                            <path d="M4 12L8.5 22H23.5L28 12L21.5 16L16 6L10.5 16L4 12Z" fill="url(#crown-gold-grad)" stroke="#2e1400" stroke-width="1.8" stroke-linejoin="round" />
+                                            <path d="M7.5 22H24.5C25.3 22 26 22.7 25.8 23.5L25.2 26.2C25.1 26.7 24.6 27 24.1 27H7.9C7.4 27 6.9 26.7 6.8 26.2L6.2 23.5C6 22.7 6.7 22 7.5 22Z" fill="url(#crown-band-grad)" stroke="#2e1400" stroke-width="1.8" stroke-linejoin="round" />
+                                            <circle cx="16" cy="6" r="2.2" fill="#fff9c4" stroke="#2e1400" stroke-width="1.4" />
+                                            <circle cx="4" cy="12" r="1.8" fill="#fff9c4" stroke="#2e1400" stroke-width="1.4" />
+                                            <circle cx="28" cy="12" r="1.8" fill="#fff9c4" stroke="#2e1400" stroke-width="1.4" />
+                                            <polygon points="16,23 18,24.5 16,26 14,24.5" fill="#ff0055" stroke="#400010" stroke-width="0.8" />
+                                            <circle cx="15.5" cy="24" r="0.4" fill="#ffffff" />
+                                            <circle cx="11" cy="24.5" r="1.3" fill="#00f0ff" stroke="#003d47" stroke-width="0.8" />
+                                            <circle cx="21" cy="24.5" r="1.3" fill="#b000ff" stroke="#320047" stroke-width="0.8" />
+                                            <path d="M15.2 9L13 15.5L16 14.5L15.2 9Z" fill="#ffffff" opacity="0.4" />
+                                        </g>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="controls-right">
+                                <button id="music-toggle" class="icon-btn" title="Ligar/Desligar Música">🎵 BGM:
+                                    ON</button>
+                                <button id="sfx-toggle" class="icon-btn" title="Ligar/Desligar Efeitos">🔊 SFX:
+                                    ON</button>
+                            </div>
+                        </div>
+
+                        <div class="arcade-credits">
+                            &copy; 2026 Felipe Vicentini &mdash; Powered by synthwave &amp; caffeine
+                        </div>
+                    </footer>
+                </div>
+
+                <!-- Modal: Regras do Jogo (100% PT-BR) -->
+                <div id="rules-modal" class="modal hidden">
+                    <div class="modal-box rules-modal-box">
+                        <div class="modal-header">
+                            <h2>📜 REGRAS DO JOGO</h2>
+                            <p class="modal-subtitle">COMO CALAR A BOCA DO CRUZADO</p>
+                        </div>
+
+                        <div class="rules-content">
+                            <div class="rules-section">
+                                <h3 class="rules-heading">🎯 OBJETIVO</h3>
+                                <p class="rules-text">A postura acabou! Use a marreta da Luana para nocautear os colegas
+                                    de trabalho
+                                    que não param de falar antes que os 60 segundos de expediente acabem!</p>
+                            </div>
+
+                            <div class="rules-section">
+                                <h3 class="rules-heading">👥 ALVOS & PONTUAÇÃO</h3>
+                                <div class="rules-targets-grid">
+                                    <div class="rule-target-card cyan">
+                                        <span class="target-name">🧑🏻‍🦱 CRUZADO</span>
+                                        <span class="target-desc">Alvo principal. Não para de falar!</span>
+                                        <span class="target-badge cyan">+10 PTS</span>
+                                    </div>
+                                    <div class="rule-target-card cyan">
+                                        <span class="target-name">👨🏻‍🦲 JÓRIO</span>
+                                        <span class="target-desc">Apesar de velho, sempre some rapidamente!</span>
+                                        <span class="target-badge cyan">+25 PTS</span>
+                                    </div>
+                                    <div class="rule-target-card green">
+                                        <span class="target-name">🤢 SENA (CUIDADO!)</span>
+                                        <span class="target-desc">Ele acabou de almoçar. NÃO MARRETE!</span>
+                                        <span class="target-badge red">-30 PTS | QUEBRA COMBO</span>
+                                    </div>
+                                    <div class="rule-target-card gold">
+                                        <span class="target-name">☕ CAFEZINHO</span>
+                                        <span class="target-desc">Combustível para aguentar tanto estresse!</span>
+                                        <span class="target-badge gold">+20 PTS | +3s </span>
+                                    </div>
+                                    <div class="rule-target-card gold">
+                                        <span class="target-name">🍬 DOCINHO</span>
+                                        <span class="target-desc">Pegue rápido antes que suma!</span>
+                                        <span class="target-badge gold">+50 PTS | +6s </span>
+                                    </div>
+                                    <div class="rule-target-card red">
+                                        <span class="target-name">❄️ AR NO 15°C (CUIDADO!)</span>
+                                        <span class="target-desc">A Luana ODEIA frio. NÃO MARRETE!</span>
+                                        <span class="target-badge red">-30 PTS | -10s | QUEBRA COMBO</span>
+                                    </div>
+                                    <div class="rule-target-card red">
+                                        <span class="target-name">✉️ 2 E-MAILS (CUIDADO!)</span>
+                                        <span class="target-desc">O ROC avisou, você não ouviu. NÃO MARRETE!</span>
+                                        <span class="target-badge red">-60 PTS | -15s | QUEBRA COMBO</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rules-section">
+                                <h3 class="rules-heading">🔥 MEDIDOR DE FÚRIA</h3>
+                                <p class="rules-text">Acerte os alvos sem errar para encher a barra de
+                                    <strong>FÚRIA</strong> da
+                                    Luana. Ao bater 100%, você entra no <strong>MODO FÚRIA</strong>: pontuação dobrada
+                                    (2x),
+                                    aparições frenéticas e combos insanos!
+                                </p>
+                            </div>
+
+                            <div class="rules-section">
+                                <h3 class="rules-heading">🎮 CONTROLES</h3>
+                                <p class="rules-text">
+                                    🖱️ <strong>Mouse ou Toque:</strong> Mire e clique diretamente no alvo para desferir
+                                    a
+                                    marretada.<br>
+                                    ⌨️ <strong>Teclado:</strong> Use as teclas numéricas de <strong>1 a 9</strong> para
+                                    bater no
+                                    buraco correspondente.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button id="close-rules-btn" class="arcade-btn primary">ENTENDI!</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal: Game Over / Fim do Expediente -->
+                <div id="highscore-modal" class="modal hidden">
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h2>FIM DO EXPEDIENTE!</h2>
+                            <p class="modal-subtitle">A POSTURA FOI COMPLETAMENTE DESTRUÍDA</p>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">PONTUAÇÃO FINAL</span>
+                                <span class="stat-val cyan" id="final-score">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">HITS TOTAIS</span>
+                                <span class="stat-val pink" id="final-heads">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">MAIOR COMBO</span>
+                                <span class="stat-val gold" id="final-combo">0x</span>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Coworkers Breakdown -->
+                        <div id="coworker-breakdown" class="breakdown-grid"></div>
+
+                        <div class="rank-btn-row">
+                            <button id="view-rank-btn" class="arcade-btn yellow">VER RANK</button>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button id="menu-btn" class="arcade-btn primary">MENU</button>
+                            <button id="restart-btn" class="arcade-btn primary">JOGAR NOVAMENTE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded Base64 Textures (Zero-CORS for local file:// & offline execution) -->
+    <script src="assets/textures_data.js"></script>
+
+    <!-- Sound & Game Logic Scripts -->
+    <script src="script.js?v=85"></script>
+</body>
+
+</html>
