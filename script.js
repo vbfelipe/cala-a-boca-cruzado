@@ -911,8 +911,8 @@ class ArcadeWhackGame {
         this.updateCameraProjection();
     }
 
-    // Dynamic Responsive Auto-Framing: Guarantees the table, holes, and cabinet fit 100% inside any window size,
-    // especially small/narrow "stealth" windows at work, preventing the table from staying huge or getting cut off!
+    // Dynamic Responsive Auto-Framing: Guarantees the table, holes, artwork, and cabinet fit 100% inside any window size,
+    // including ultra-tall mobile screens (e.g. Galaxy Z Flip 22:9, iPhones) and narrow desktop windows!
     updateCameraProjection() {
         if (!this.container || !this.renderer || !this.camera) return;
         const w = this.container.clientWidth;
@@ -925,55 +925,85 @@ class ArcadeWhackGame {
         this.renderer.setSize(w, h);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
 
-        // Auto-framing based on aspect ratio:
-        // Table width is ~4.14 units, cabinet height is ~7.5 units.
-        // In wide view, the cabinet fits vertically at base zoom for any aspect > 0.40.
-        // In play view, the table fits horizontally for aspect >= 1.0.
-        let playZoom = 1.0;
-        let wideZoom = 1.0;
+        // 1. Desktop Base Framing (Aspect >= 0.72)
+        // Preserves 100% of the desktop arcade cabinet experience
+        let desktopPlayZoom = 1.0;
+        let desktopWideZoom = 1.0;
 
         if (aspect < 1.05) {
-            playZoom = Math.min(1.75, Math.max(1.0, Math.pow(1.05 / aspect, 0.82)));
+            desktopPlayZoom = Math.min(1.75, Math.max(1.0, Math.pow(1.05 / aspect, 0.82)));
         }
-
         if (aspect < 0.75) {
-            wideZoom = Math.min(1.35, Math.max(1.0, Math.pow(0.75 / aspect, 0.70)));
+            desktopWideZoom = Math.min(1.35, Math.max(1.0, Math.pow(0.75 / aspect, 0.70)));
         }
-
-        // Height compensation: if window is very short vertically (h < 580px), slightly pull back so table clears HUD
-        if (h < 580) {
+        if (h < 580 && aspect >= 0.75) {
             const hFactor = Math.min(1.25, 580 / Math.max(300, h));
-            playZoom = Math.max(playZoom, playZoom * hFactor);
+            desktopPlayZoom = Math.max(desktopPlayZoom, desktopPlayZoom * hFactor);
         }
 
-        // Apply dynamic zoom to play view (MESA)
-        const playTarget = this.baseCameraViews.play.target;
-        const playOffset = this.baseCameraViews.play.offset;
-        this.cameraViews.play.pos.set(
-            playTarget.x + playOffset.x * playZoom,
-            playTarget.y + playOffset.y * playZoom,
-            playTarget.z + playOffset.z * playZoom
+        const dPlayTarget = new THREE.Vector3(
+            this.baseCameraViews.play.target.x,
+            aspect < 1.0 ? 1.30 : 1.40,
+            aspect < 1.0 ? 0.20 : 0.10
         );
-        this.cameraViews.play.target.copy(playTarget);
+        const dPlayPos = new THREE.Vector3(
+            this.baseCameraViews.play.target.x + this.baseCameraViews.play.offset.x * desktopPlayZoom,
+            this.baseCameraViews.play.target.y + this.baseCameraViews.play.offset.y * desktopPlayZoom,
+            this.baseCameraViews.play.target.z + this.baseCameraViews.play.offset.z * desktopPlayZoom
+        );
 
-        // In portrait / narrow windows, slightly tilt view down towards table center to clear the top HUD
-        if (aspect < 1.0) {
-            this.cameraViews.play.target.y = 1.30;
-            this.cameraViews.play.target.z = 0.20;
+        const dWideTarget = new THREE.Vector3().copy(this.baseCameraViews.wide.target);
+        const dWidePos = new THREE.Vector3(
+            this.baseCameraViews.wide.target.x + this.baseCameraViews.wide.offset.x * desktopWideZoom,
+            this.baseCameraViews.wide.target.y + this.baseCameraViews.wide.offset.y * desktopWideZoom,
+            this.baseCameraViews.wide.target.z + this.baseCameraViews.wide.offset.z * desktopWideZoom
+        );
+
+        if (aspect >= 0.72) {
+            this.cameraViews.play.pos.copy(dPlayPos);
+            this.cameraViews.play.target.copy(dPlayTarget);
+            this.cameraViews.wide.pos.copy(dWidePos);
+            this.cameraViews.wide.target.copy(dWideTarget);
         } else {
-            this.cameraViews.play.target.y = 1.40;
-            this.cameraViews.play.target.z = 0.10;
+            // 2. Mobile Portrait Framing (Aspect < 0.72, e.g. Galaxy Z Flip 22:9, iPhones, standard smartphones)
+            // Smoothly blends from aspect 0.72 down to 0.60
+            const t = Math.min(1.0, Math.max(0.0, (0.72 - aspect) / 0.12));
+
+            // Width factor: ensures cabinet fits with edge margins on narrow & ultra-tall phones (e.g. aspect ~0.45)
+            const widthFactor = Math.max(1.0, Math.pow(0.50 / Math.max(0.35, aspect), 0.72));
+
+            // Mobile Play View:
+            // Perfectly frames the entire marquee illustration (Luana, "CALA A BOCA, CRUZADO!", coworker heads)
+            // AND the table with all 9 holes centered and ergonomically positioned for touch tapping!
+            const mPlayTarget = new THREE.Vector3(0, 3.15, -0.60);
+            const mPlayPos = new THREE.Vector3(
+                0,
+                3.15 + 4.65 * widthFactor,
+                -0.60 + 10.8 * widthFactor
+            );
+
+            // Mobile Wide View (Menu):
+            // Centers the full 3D fliperama cabinet with ample top & bottom margins
+            const mWideTarget = new THREE.Vector3(0, 3.05, -0.60);
+            const mWidePos = new THREE.Vector3(
+                -5.8 * widthFactor,
+                3.05 + 5.15 * widthFactor,
+                -0.60 + 13.4 * widthFactor
+            );
+
+            this.cameraViews.play.target.lerpVectors(dPlayTarget, mPlayTarget, t);
+            this.cameraViews.play.pos.lerpVectors(dPlayPos, mPlayPos, t);
+            this.cameraViews.wide.target.lerpVectors(dWideTarget, mWideTarget, t);
+            this.cameraViews.wide.pos.lerpVectors(dWidePos, mWidePos, t);
         }
 
-        // Apply dynamic zoom to wide view (MENU / ATTRACT)
-        const wideTarget = this.baseCameraViews.wide.target;
-        const wideOffset = this.baseCameraViews.wide.offset;
-        this.cameraViews.wide.pos.set(
-            wideTarget.x + wideOffset.x * wideZoom,
-            wideTarget.y + wideOffset.y * wideZoom,
-            wideTarget.z + wideOffset.z * wideZoom
-        );
-        this.cameraViews.wide.target.copy(wideTarget);
+        // Snap immediately on first load or menu resize so there's zero jump or drift
+        if (!this.isPlaying && this.currentView === 'wide') {
+            this.cameraPos.copy(this.cameraViews.wide.pos);
+            this.cameraTarget.copy(this.cameraViews.wide.target);
+            this.camera.position.copy(this.cameraPos);
+            this.camera.lookAt(this.cameraTarget);
+        }
     }
 
     // Preload Textures with automatic zero-CORS embedded Data-URI support for file:// and offline execution

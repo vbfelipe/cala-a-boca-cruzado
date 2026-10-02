@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Cala a Boca, Cruzado!</title>
 
     <!-- Google Fonts -->
@@ -25,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <link rel="stylesheet" href="style.css?v=40" />
+    <link rel="stylesheet" href="style.css?v=41" />
 </head>
 
 <body>
@@ -115,33 +116,49 @@
                                 <button id="rules-btn" class="arcade-btn gray">
                                     <span class="btn-text">REGRAS</span>
                                 </button>
-                                <button id="rank-menu-btn" class="arcade-btn yellow crown-btn" title="Classificação / Rank" aria-label="Ver Rank">
-                                    <svg class="crown-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <button id="rank-menu-btn" class="arcade-btn yellow crown-btn"
+                                    title="Classificação / Rank" aria-label="Ver Rank">
+                                    <svg class="crown-icon" viewBox="0 0 32 32" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                         <defs>
-                                            <linearGradient id="crown-gold-grad" x1="16" y1="4" x2="16" y2="28" gradientUnits="userSpaceOnUse">
+                                            <linearGradient id="crown-gold-grad" x1="16" y1="4" x2="16" y2="28"
+                                                gradientUnits="userSpaceOnUse">
                                                 <stop offset="0%" stop-color="#fff8b3" />
                                                 <stop offset="25%" stop-color="#ffd214" />
                                                 <stop offset="75%" stop-color="#f39200" />
                                                 <stop offset="100%" stop-color="#b85d00" />
                                             </linearGradient>
-                                            <linearGradient id="crown-band-grad" x1="16" y1="21" x2="16" y2="27" gradientUnits="userSpaceOnUse">
+                                            <linearGradient id="crown-band-grad" x1="16" y1="21" x2="16" y2="27"
+                                                gradientUnits="userSpaceOnUse">
                                                 <stop offset="0%" stop-color="#ffe875" />
                                                 <stop offset="100%" stop-color="#c96800" />
                                             </linearGradient>
                                             <filter id="crown-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                                                <feDropShadow dx="0" dy="1.5" stdDeviation="0.8" flood-color="#401a00" flood-opacity="0.85" />
+                                                <feDropShadow dx="0" dy="1.5" stdDeviation="0.8" flood-color="#401a00"
+                                                    flood-opacity="0.85" />
                                             </filter>
                                         </defs>
                                         <g filter="url(#crown-shadow)">
-                                            <path d="M4 12L8.5 22H23.5L28 12L21.5 16L16 6L10.5 16L4 12Z" fill="url(#crown-gold-grad)" stroke="#2e1400" stroke-width="1.8" stroke-linejoin="round" />
-                                            <path d="M7.5 22H24.5C25.3 22 26 22.7 25.8 23.5L25.2 26.2C25.1 26.7 24.6 27 24.1 27H7.9C7.4 27 6.9 26.7 6.8 26.2L6.2 23.5C6 22.7 6.7 22 7.5 22Z" fill="url(#crown-band-grad)" stroke="#2e1400" stroke-width="1.8" stroke-linejoin="round" />
-                                            <circle cx="16" cy="6" r="2.2" fill="#fff9c4" stroke="#2e1400" stroke-width="1.4" />
-                                            <circle cx="4" cy="12" r="1.8" fill="#fff9c4" stroke="#2e1400" stroke-width="1.4" />
-                                            <circle cx="28" cy="12" r="1.8" fill="#fff9c4" stroke="#2e1400" stroke-width="1.4" />
-                                            <polygon points="16,23 18,24.5 16,26 14,24.5" fill="#ff0055" stroke="#400010" stroke-width="0.8" />
+                                            <path d="M4 12L8.5 22H23.5L28 12L21.5 16L16 6L10.5 16L4 12Z"
+                                                fill="url(#crown-gold-grad)" stroke="#2e1400" stroke-width="1.8"
+                                                stroke-linejoin="round" />
+                                            <path
+                                                d="M7.5 22H24.5C25.3 22 26 22.7 25.8 23.5L25.2 26.2C25.1 26.7 24.6 27 24.1 27H7.9C7.4 27 6.9 26.7 6.8 26.2L6.2 23.5C6 22.7 6.7 22 7.5 22Z"
+                                                fill="url(#crown-band-grad)" stroke="#2e1400" stroke-width="1.8"
+                                                stroke-linejoin="round" />
+                                            <circle cx="16" cy="6" r="2.2" fill="#fff9c4" stroke="#2e1400"
+                                                stroke-width="1.4" />
+                                            <circle cx="4" cy="12" r="1.8" fill="#fff9c4" stroke="#2e1400"
+                                                stroke-width="1.4" />
+                                            <circle cx="28" cy="12" r="1.8" fill="#fff9c4" stroke="#2e1400"
+                                                stroke-width="1.4" />
+                                            <polygon points="16,23 18,24.5 16,26 14,24.5" fill="#ff0055"
+                                                stroke="#400010" stroke-width="0.8" />
                                             <circle cx="15.5" cy="24" r="0.4" fill="#ffffff" />
-                                            <circle cx="11" cy="24.5" r="1.3" fill="#00f0ff" stroke="#003d47" stroke-width="0.8" />
-                                            <circle cx="21" cy="24.5" r="1.3" fill="#b000ff" stroke="#320047" stroke-width="0.8" />
+                                            <circle cx="11" cy="24.5" r="1.3" fill="#00f0ff" stroke="#003d47"
+                                                stroke-width="0.8" />
+                                            <circle cx="21" cy="24.5" r="1.3" fill="#b000ff" stroke="#320047"
+                                                stroke-width="0.8" />
                                             <path d="M15.2 9L13 15.5L16 14.5L15.2 9Z" fill="#ffffff" opacity="0.4" />
                                         </g>
                                     </svg>
@@ -292,7 +309,7 @@
     <script src="assets/textures_data.js"></script>
 
     <!-- Sound & Game Logic Scripts -->
-    <script src="script.js?v=85"></script>
+    <script src="script.js?v=86"></script>
 </body>
 
 </html>
