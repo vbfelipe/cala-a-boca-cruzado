@@ -1306,6 +1306,12 @@ select,
     box-shadow: 0 0 8px rgba(255, 230, 0, 0.12);
 }
 
+.breakdown-pill.energetico {
+    border: 1.5px solid var(--neon-gold);
+    color: #fff066;
+    box-shadow: 0 0 8px rgba(255, 230, 0, 0.16);
+}
+
 .breakdown-pill.email {
     border: 1.5px solid #ff0033;
     color: #ff4d6d;

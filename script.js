@@ -221,6 +221,8 @@ class SoundEngine {
             if (typeof this.playCoffeeChime === 'function') this.playCoffeeChime();
         } else if (type === 'docinho') {
             if (typeof this.playDocinhoChime === 'function') this.playDocinhoChime();
+        } else if (type === 'energetico') {
+            if (typeof this.playEnergeticoSound === 'function') this.playEnergeticoSound();
         }
     }
 
@@ -375,6 +377,68 @@ class SoundEngine {
             gain.connect(this.sfxGain || this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.28);
+        });
+    }
+
+    playEnergeticoSound() {
+        if (!this.sfxEnabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // 1. Crisp Soda Can Opening "TSSSHHH-CRACK" (aluminum pop + high-pressure fizz hiss)
+        if (this.noiseBuffer) {
+            // Sudden transient aluminum crack
+            const crack = this.ctx.createBufferSource();
+            crack.buffer = this.noiseBuffer;
+            const crackFilter = this.ctx.createBiquadFilter();
+            crackFilter.type = 'bandpass';
+            crackFilter.frequency.setValueAtTime(3200, now);
+            crackFilter.Q.setValueAtTime(3.0, now);
+            const crackGain = this.ctx.createGain();
+            crackGain.gain.setValueAtTime(0.50, now);
+            crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            crack.connect(crackFilter);
+            crackFilter.connect(crackGain);
+            crackGain.connect(this.sfxGain || this.ctx.destination);
+            crack.start(now);
+            crack.stop(now + 0.08);
+
+            // Effervescent carbonated fizz hiss (sustained 0.28s)
+            const fizz = this.ctx.createBufferSource();
+            fizz.buffer = this.noiseBuffer;
+            const fizzFilter = this.ctx.createBiquadFilter();
+            fizzFilter.type = 'highpass';
+            fizzFilter.frequency.setValueAtTime(6500, now + 0.02);
+            const fizzGain = this.ctx.createGain();
+            fizzGain.gain.setValueAtTime(0.26, now + 0.02);
+            fizzGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+            fizz.connect(fizzFilter);
+            fizzFilter.connect(fizzGain);
+            fizzGain.connect(this.sfxGain || this.ctx.destination);
+            fizz.start(now + 0.02);
+            fizz.stop(now + 0.33);
+        }
+
+        // 2. High-energy electric power-up synthesizer arpeggio (Ascending neon energy chord)
+        const notes = [587.33, 739.99, 880.00, 1174.66, 1479.98, 1760.00]; // D5, F#5, A5, D6, F#6, A6 (D major energetic fanfare!)
+        notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const t = now + 0.04 + idx * 0.038;
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, t);
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(freq * 2.5, t);
+
+            gain.gain.setValueAtTime(0.22, t);
+            gain.gain.exponentialRampToValueAtTime(0.005, t + 0.22);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.sfxGain || this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.24);
         });
     }
 
@@ -816,6 +880,7 @@ class ArcadeWhackGame {
             JORIO: { type: 'jorio', points: 25, bonusTime: 0, yell: 'JÓRIO VELHO! +25', color: 0x00f0ff },
             COFFEE: { type: 'coffee', points: 30, bonusTime: 3, yell: 'CAFEZINHO! +30 PTS +3s', color: 0xffe600 },
             DOCINHO: { type: 'docinho', points: 60, bonusTime: 6, yell: 'DOCINHO! +60 PTS +6s', color: 0xffe600 },
+            ENERGETICO: { type: 'energetico', points: 90, bonusTime: 9, yell: 'ENERGÉTICO! +90 PTS +9s', color: 0xffe600 },
             EMAIL: { type: 'email', points: -60, bonusTime: -15, yell: 'DOIS E-MAILS! -60 PTS -15s', color: 0xff0033 },
             AC: { type: 'ac', points: -30, bonusTime: -10, yell: 'AR NO 15°C! -30 PTS -10s', color: 0xff0033 }
         };
@@ -1024,6 +1089,7 @@ class ArcadeWhackGame {
 
         this.textures.tableMat = this.createProceduralTableTexture();
         this.textures.acLcd = this.createProceduralAcLcdTexture();
+        this.textures.energyCanLabel = this.createProceduralEnergyCanTexture();
 
         // Update HTML Luana portrait if base64 data available (guarantees offline/file:// works too)
         if (texData.luanaHead) {
@@ -1195,6 +1261,226 @@ class ArcadeWhackGame {
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.lineWidth = 6;
         ctx.strokeRect(4, 4, 504, 376);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.anisotropy = 4;
+        tex.needsUpdate = true;
+        return tex;
+    }
+
+    // Generates high-resolution, photorealistic 1024x512 wrap texture for the ENERGÉTICO can
+    // Inspired by reference photos: carbon-charcoal satin background, glowing electric lightning bolt,
+    // bold typography, dynamic energy slashes, +90 PTS / +9s badges, barcode, and nutrition facts!
+    createProceduralEnergyCanTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Deep Metallic Carbon Background
+        const bgGrad = ctx.createLinearGradient(0, 0, 1024, 0);
+        bgGrad.addColorStop(0, '#0c0e12');
+        bgGrad.addColorStop(0.25, '#191e26');
+        bgGrad.addColorStop(0.5, '#12151b');
+        bgGrad.addColorStop(0.75, '#1c222b');
+        bgGrad.addColorStop(1, '#0c0e12');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 1024, 512);
+
+        // Subtle brushed metal / carbon horizontal micro-lines
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        for (let y = 0; y < 512; y += 4) {
+            ctx.fillRect(0, y, 1024, 1.5);
+        }
+
+        // 2. Dynamic Diagonal Lightning / Energy Slices (Signature look from reference photo 2)
+        ctx.save();
+        const slashGrad = ctx.createLinearGradient(300, 512, 700, 0);
+        slashGrad.addColorStop(0, '#ff9900');
+        slashGrad.addColorStop(0.5, '#ffcc00');
+        slashGrad.addColorStop(1, '#ffe600');
+
+        // Dramatic angular dynamic slash across the bottom-center
+        ctx.fillStyle = slashGrad;
+        ctx.beginPath();
+        ctx.moveTo(330, 512);
+        ctx.lineTo(690, 512);
+        ctx.lineTo(590, 355);
+        ctx.lineTo(410, 355);
+        ctx.closePath();
+        ctx.fill();
+
+        // Secondary neon edge accents
+        ctx.strokeStyle = '#fff275';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(410, 355);
+        ctx.lineTo(590, 355);
+        ctx.stroke();
+        ctx.restore();
+
+        // 3. Front Center Branding (Centered at X = 512)
+        // A. Electric Lightning Bolt Icon ⚡ (Vector drawn with bright golden glow)
+        ctx.save();
+        ctx.shadowColor = '#ffe600';
+        ctx.shadowBlur = 28;
+
+        const boltGrad = ctx.createLinearGradient(512, 30, 512, 175);
+        boltGrad.addColorStop(0, '#ffffff');
+        boltGrad.addColorStop(0.3, '#ffea00');
+        boltGrad.addColorStop(1, '#ff7700');
+        ctx.fillStyle = boltGrad;
+
+        ctx.beginPath();
+        // Sharp angular lightning bolt coordinates centered around (512, 105)
+        ctx.moveTo(528, 30);
+        ctx.lineTo(468, 114);
+        ctx.lineTo(510, 114);
+        ctx.lineTo(486, 180);
+        ctx.lineTo(556, 94);
+        ctx.lineTo(518, 94);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.restore();
+
+        // B. Header Tag: "⚡ FORMULA POTENTE ⚡"
+        ctx.font = '900 20px "Impact", "Arial Black", sans-serif';
+        ctx.fillStyle = '#ffcc00';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '2px';
+        ctx.fillText('⚡ FÓRMULA POTENTE ⚡', 512, 202);
+
+        // C. Giant Brand Title: "ENERGÉTICO"
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 16;
+        ctx.shadowOffsetY = 4;
+        ctx.font = '900 76px "Impact", "Arial Black", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.fillText('ENERGÉTICO', 512, 270);
+
+        // Glowing golden outline on "ENERGÉTICO"
+        ctx.strokeStyle = '#ffe600';
+        ctx.lineWidth = 3;
+        ctx.strokeText('ENERGÉTICO', 512, 270);
+        ctx.restore();
+
+        // D. Sub-Title Banner: "TURBO ENERGY"
+        ctx.fillStyle = '#111317';
+        ctx.fillRect(390, 290, 244, 34);
+        ctx.font = '900 26px "Impact", "Arial Black", sans-serif';
+        ctx.fillStyle = '#ffe600';
+        ctx.textAlign = 'center';
+        ctx.fillText('TURBO ENERGY', 512, 316);
+
+        // E. Bonus Stat Badges Row: "+90 PTS • +9s"
+        ctx.fillStyle = 'rgba(255, 230, 0, 0.28)';
+        ctx.strokeStyle = '#ffe600';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(376, 332, 272, 38, 8);
+        } else {
+            ctx.rect(376, 332, 272, 38);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '900 24px "Impact", "Arial Black", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('+90 PTS  •  +9 SEC', 512, 360);
+
+        // F. Ingredients / Formula
+        ctx.font = 'bold 17px "Arial", sans-serif';
+        ctx.fillStyle = '#111317';
+        ctx.fillText('TAURINA PURA  •  CAFEÍNA ATIVA', 512, 405);
+
+        // G. Volume Badge
+        ctx.font = '900 32px "Impact", "Arial Black", sans-serif';
+        ctx.fillStyle = '#111317';
+        ctx.fillText('330 mL', 512, 452);
+
+        // 4. Back / Side Details (Left side: Nutrition Table; Right side: Barcode & Recycling)
+        // Left side (X = 120): Nutrition Facts
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(60, 115, 204, 270);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.fillRect(60, 115, 204, 30);
+
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'left';
+        ctx.fillText('TABELA NUTRICIONAL', 70, 135);
+
+        ctx.font = '11px monospace';
+        ctx.fillStyle = '#c0c8d4';
+        const nutRows = [
+            ['Porção', '330 ml'],
+            ['Energia', '90 kcal'],
+            ['Carboidratos', '22 g'],
+            ['Açúcares', '21 g'],
+            ['Taurina', '1320 mg'],
+            ['Cafeína', '105 mg'],
+            ['Vitamina B3', '100%'],
+            ['Vitamina B6', '100%'],
+            ['Vitamina B12', '100%']
+        ];
+        nutRows.forEach(([lbl, val], idx) => {
+            const yPos = 170 + idx * 22;
+            ctx.fillText(lbl, 70, yPos);
+            ctx.textAlign = 'right';
+            ctx.fillText(val, 254, yPos);
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(66, yPos + 4, 192, 1);
+            ctx.fillStyle = '#c0c8d4';
+        });
+
+        // Right side (X = 860): Barcode & Badges
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(815, 145, 150, 185);
+
+        // Realistic Barcode Stripes
+        ctx.fillStyle = '#000000';
+        let bcX = 827;
+        const pattern = [2, 1, 3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 2, 4, 1, 2, 3, 1, 2, 4, 1, 3, 2];
+        for (let p of pattern) {
+            ctx.fillRect(bcX, 158, p, 134);
+            bcX += p + 2;
+        }
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('7 891000 330909', 890, 316);
+
+        // Recycle Symbol & Text
+        ctx.font = '28px sans-serif';
+        ctx.fillStyle = '#8f9baa';
+        ctx.fillText('♻', 890, 372);
+        ctx.font = '10px sans-serif';
+        ctx.fillText('LATA DE ALUMÍNIO', 890, 394);
+        ctx.fillText('100% RECICLÁVEL', 890, 408);
+
+        // Top & Bottom Aluminum Seam Bands
+        const topGrad = ctx.createLinearGradient(0, 0, 0, 24);
+        topGrad.addColorStop(0, '#5a6270');
+        topGrad.addColorStop(0.5, '#b0b8c4');
+        topGrad.addColorStop(1, '#2c323c');
+        ctx.fillStyle = topGrad;
+        ctx.fillRect(0, 0, 1024, 24);
+
+        const btmGrad = ctx.createLinearGradient(0, 488, 0, 512);
+        btmGrad.addColorStop(0, '#2c323c');
+        btmGrad.addColorStop(0.5, '#b0b8c4');
+        btmGrad.addColorStop(1, '#5a6270');
+        ctx.fillStyle = btmGrad;
+        ctx.fillRect(0, 488, 1024, 24);
 
         const tex = new THREE.CanvasTexture(canvas);
         tex.anisotropy = 4;
@@ -1663,12 +1949,17 @@ class ArcadeWhackGame {
         const acGroup = this.createComicAcRemoteGroup();
         group.add(acGroup);
 
+        // 8. Comic Energetico Can Model (+90 PTS, +9s)
+        const energeticoGroup = this.createComicEnergeticoGroup();
+        group.add(energeticoGroup);
+
         return {
             group: group,
             faceMesh: faceMesh,
             ringMesh: ringMesh,
             coffeeGroup: coffeeGroup,
             docinhoGroup: docinhoGroup,
+            energeticoGroup: energeticoGroup,
             emailGroup: emailGroup,
             acGroup: acGroup
         };
@@ -2305,6 +2596,200 @@ class ArcadeWhackGame {
 
         acGroup.add(remoteRig);
         return acGroup;
+    }
+
+    // 3D Harmonized Energy Drink Can ("ENERGÉTICO: +90 PTS, +9s")
+    // Constructed using the exact same procedural canvas & industrial precision tech as the AC Remote!
+    // Realistic sleek aluminum 330ml can: brushed aluminum neck/base tapers, chime rims, recessed lid,
+    // stamped aluminum pull-tab with finger ring and rivet, and wrapped in our high-res procedural label.
+    // Calibrated to rest horizontally on the mole platform floor with ideal camera visibility (~42° perspective).
+    createComicEnergeticoGroup() {
+        const energeticoGroup = new THREE.Group();
+        energeticoGroup.visible = false;
+
+        const canRig = new THREE.Group();
+        // Resting cleanly on the mole platform surface (platform surface is at y = 0.07)
+        canRig.position.set(0, 0.17, 0.01);
+
+        // Player Camera Angle Calibration:
+        // Overhead camera views table at ~42 deg.
+        // The can lies horizontally on the platform, tilted slightly forward (+X rotation)
+        // and angled diagonally (~ -24 deg around Y) so the brand label, lightning bolt,
+        // and the top aluminum pull-tab are all simultaneously in clear, glorious view!
+        canRig.rotation.x = 0.42;
+        canRig.rotation.y = -0.32;
+        canRig.rotation.z = 0.05;
+        canRig.scale.set(1.35, 1.35, 1.35);
+
+        // --- Materials ---
+        // 1. Can Printed Label Material (high-res canvas texture, satin gloss)
+        const labelMat = new THREE.MeshStandardMaterial({
+            map: this.textures.energyCanLabel,
+            roughness: 0.28,
+            metalness: 0.35
+        });
+
+        // 2. Brushed Aluminum for neck and base tapers
+        const alumBodyMat = new THREE.MeshStandardMaterial({
+            color: 0xd8dde5,
+            roughness: 0.26,
+            metalness: 0.86
+        });
+
+        // 3. Polished Aluminum Rim (chimes)
+        const chimeMat = new THREE.MeshStandardMaterial({
+            color: 0xedf1f7,
+            roughness: 0.16,
+            metalness: 0.92
+        });
+
+        // 4. Recessed Top Lid Disc
+        const lidMat = new THREE.MeshStandardMaterial({
+            color: 0xd2d7e0,
+            roughness: 0.28,
+            metalness: 0.84
+        });
+
+        // 5. Stamped Pull-Tab Lever
+        const pullTabMat = new THREE.MeshStandardMaterial({
+            color: 0xe8ecf2,
+            roughness: 0.20,
+            metalness: 0.90
+        });
+
+        // 6. Central Mounting Rivet
+        const rivetMat = new THREE.MeshStandardMaterial({
+            color: 0xbac0cc,
+            roughness: 0.24,
+            metalness: 0.94
+        });
+
+        // 7. Indented Scoreline Opening (Drinking aperture)
+        const apertureMat = new THREE.MeshStandardMaterial({
+            color: 0x88909c,
+            roughness: 0.40,
+            metalness: 0.70
+        });
+
+        // --- Can Sub-Group (Horizontal Orientation) ---
+        // canModel is tipped horizontally along X-axis
+        const canModel = new THREE.Group();
+        canModel.rotation.z = -Math.PI / 2;
+
+        // canRoll rotates all can parts around its cylindrical axis (Y) so front branding & pull-tab face up!
+        const canRoll = new THREE.Group();
+        canRoll.rotation.y = 1.86;
+        canModel.add(canRoll);
+
+        // A. Main Cylindrical Body (Label wrap)
+        const bodyGeo = new THREE.CylinderGeometry(0.115, 0.115, 0.35, 36, 1, true);
+        const bodyMesh = new THREE.Mesh(bodyGeo, labelMat);
+        canRoll.add(bodyMesh);
+
+        // B. Top Neck Taper (Smooth aluminum shoulder from 0.115 to 0.098)
+        const topTaperGeo = new THREE.CylinderGeometry(0.098, 0.115, 0.035, 36, 1, true);
+        const topTaper = new THREE.Mesh(topTaperGeo, alumBodyMat);
+        topTaper.position.y = 0.175 + 0.0175;
+        canRoll.add(topTaper);
+
+        // C. Top Chime Rim (Rolled aluminum edge seam)
+        const topChimeGeo = new THREE.TorusGeometry(0.097, 0.007, 10, 36);
+        const topChime = new THREE.Mesh(topChimeGeo, chimeMat);
+        topChime.rotation.x = Math.PI / 2;
+        topChime.position.y = 0.210;
+        canRoll.add(topChime);
+
+        // D. Recessed Top Lid (Sunken disc framing pull tab & aperture)
+        const lidGeo = new THREE.CircleGeometry(0.095, 36);
+        const lidMesh = new THREE.Mesh(lidGeo, lidMat);
+        lidMesh.rotation.x = -Math.PI / 2;
+        lidMesh.position.y = 0.203;
+        canRoll.add(lidMesh);
+
+        // E. Drinking Aperture (Indented teardrop opening scoreline)
+        const aperture = new THREE.Mesh(
+            new THREE.CircleGeometry(0.026, 20),
+            apertureMat
+        );
+        aperture.rotation.x = -Math.PI / 2;
+        aperture.scale.set(0.75, 1.25, 1);
+        aperture.position.set(0, 0.204, 0.040);
+        canRoll.add(aperture);
+
+        const scoreRing = new THREE.Mesh(
+            new THREE.RingGeometry(0.025, 0.028, 20),
+            chimeMat
+        );
+        scoreRing.rotation.x = -Math.PI / 2;
+        scoreRing.scale.set(0.75, 1.25, 1);
+        scoreRing.position.set(0, 0.2045, 0.040);
+        canRoll.add(scoreRing);
+
+        // F. Stamped Aluminum Pull-Tab with Finger Ring Hole & Rivet
+        const tabShape = new THREE.Shape();
+        const tw = 0.015;
+        const tBack = -0.042;
+        const tFront = 0.022;
+        const cr = 0.005;
+        tabShape.moveTo(-tw + cr, tBack);
+        tabShape.lineTo(tw - cr, tBack);
+        tabShape.quadraticCurveTo(tw, tBack, tw, tBack + cr);
+        tabShape.lineTo(tw, tFront - cr);
+        tabShape.quadraticCurveTo(tw, tFront, tw - cr, tFront);
+        tabShape.lineTo(-tw + cr, tFront);
+        tabShape.quadraticCurveTo(-tw, tFront, -tw, tFront - cr);
+        tabShape.lineTo(-tw, tBack + cr);
+        tabShape.quadraticCurveTo(-tw, tBack, -tw + cr, tBack);
+
+        // Finger ring hole inside rear half of tab
+        const holePath = new THREE.Path();
+        holePath.absarc(0, -0.022, 0.0075, 0, Math.PI * 2, true);
+        tabShape.holes.push(holePath);
+
+        const tabGeo = new THREE.ExtrudeGeometry(tabShape, {
+            depth: 0.0028,
+            bevelEnabled: true,
+            bevelSegments: 1,
+            steps: 1,
+            bevelSize: 0.0008,
+            bevelThickness: 0.0008
+        });
+        const tabMesh = new THREE.Mesh(tabGeo, pullTabMat);
+        tabMesh.rotation.x = Math.PI / 2;
+        tabMesh.position.set(0, 0.2065, 0);
+        canRoll.add(tabMesh);
+
+        // Central mounting rivet
+        const rivet = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.0055, 0.0055, 0.006, 16),
+            rivetMat
+        );
+        rivet.position.set(0, 0.206, 0.0);
+        canRoll.add(rivet);
+
+        // G. Bottom Neck Taper (Tapers down from 0.115 to 0.096)
+        const btmTaperGeo = new THREE.CylinderGeometry(0.115, 0.096, 0.026, 36, 1, true);
+        const btmTaper = new THREE.Mesh(btmTaperGeo, alumBodyMat);
+        btmTaper.position.y = -0.175 - 0.013;
+        canRoll.add(btmTaper);
+
+        // H. Bottom Chime Rim (Base rolled seam)
+        const btmChimeGeo = new THREE.TorusGeometry(0.095, 0.006, 10, 36);
+        const btmChime = new THREE.Mesh(btmChimeGeo, chimeMat);
+        btmChime.rotation.x = Math.PI / 2;
+        btmChime.position.y = -0.201;
+        canRoll.add(btmChime);
+
+        // I. Bottom Concave Dome Disc
+        const btmDomeGeo = new THREE.CircleGeometry(0.093, 36);
+        const btmDome = new THREE.Mesh(btmDomeGeo, lidMat);
+        btmDome.rotation.x = Math.PI / 2;
+        btmDome.position.y = -0.194;
+        canRoll.add(btmDome);
+
+        canRig.add(canModel);
+        energeticoGroup.add(canRig);
+        return energeticoGroup;
     }
 
     buildMarqueeTower() {
@@ -3066,7 +3551,7 @@ class ArcadeWhackGame {
                 // Base gain: Cruzado = 2.6%, Jorio = 3.6%, Coffee / Docinho = 4.5%
                 let baseGain = 2.6;
                 if (entity.type === 'jorio' || entity.type === 'curly') baseGain = 3.6;
-                else if (entity.type === 'coffee' || entity.type === 'docinho') baseGain = 4.5;
+                else if (entity.type === 'coffee' || entity.type === 'docinho' || entity.type === 'energetico') baseGain = 5.5;
 
                 // Combo momentum scaling (rewards rhythm & continuous streaks!)
                 const comboBonus = Math.min(3.0, (this.combo - 1) * 0.20);
@@ -3201,7 +3686,7 @@ class ArcadeWhackGame {
         if (overlay) overlay.classList.remove('active');
         const flames = document.getElementById('avatar-flames');
         if (flames) flames.classList.remove('active');
-        this.stats = { cruzado: 0, sena: 0, jorio: 0, coffee: 0, docinho: 0, email: 0, ac: 0 };
+        this.stats = { cruzado: 0, sena: 0, jorio: 0, coffee: 0, docinho: 0, energetico: 0, email: 0, ac: 0 };
 
         // CAMERA TRANSITION:
         // Swoop smoothly from the 'wide' arcade attract angle into the 'play' (MESA) playable angle!
@@ -3387,19 +3872,23 @@ class ArcadeWhackGame {
                     <span class="pill-count">${this.stats.sena}</span>
                 </div>
                 <div class="breakdown-pill coffee">
-                    <span class="pill-label">☕ CAFÉS TOMADOS:</span>
+                    <span class="pill-label">☕ CAFÉS:</span>
                     <span class="pill-count">${this.stats.coffee}</span>
                 </div>
                 <div class="breakdown-pill docinho">
-                    <span class="pill-label">🍬 DOCINHOS MORDIDOS:</span>
+                    <span class="pill-label">🍬 DOCINHOS:</span>
                     <span class="pill-count">${this.stats.docinho || 0}</span>
+                </div>
+                <div class="breakdown-pill energetico">
+                    <span class="pill-label">⚡ ENERGÉTICOS:</span>
+                    <span class="pill-count">${this.stats.energetico || 0}</span>
                 </div>
                 <div class="breakdown-pill ac">
                     <span class="pill-label">❄️ AR NO 15°C:</span>
                     <span class="pill-count">${this.stats.ac || 0}</span>
                 </div>
                 <div class="breakdown-pill email">
-                    <span class="pill-label">✉️ 2 E-MAILS RECEBIDOS:</span>
+                    <span class="pill-label">✉️ 2 E-MAILS:</span>
                     <span class="pill-count">${this.stats.email || 0}</span>
                 </div>
             `;
@@ -3495,13 +3984,14 @@ class ArcadeWhackGame {
 
         const roll = Math.random();
         let entity = this.ENTITIES.CRUZADO;
-        if (roll > 0.975) entity = this.ENTITIES.DOCINHO;       // ~2.5% (rare sweet bonus +60pts, +6s)
-        else if (roll > 0.945) entity = this.ENTITIES.EMAIL;     // ~3.0% (boss 2 e-mails penalty -60pts, -15s)
-        else if (roll > 0.910) entity = this.ENTITIES.AC;        // ~3.5% (freezing AC remote hazard -30pts, -10s)
-        else if (roll > 0.835) entity = this.ENTITIES.COFFEE;    // ~7.5% (coffee time boost +30pts, +3s)
-        else if (roll > 0.760) entity = this.ENTITIES.SENA;      // ~7.5% (sabotage hazard -15pts, -5s)
-        else if (roll > 0.450) entity = this.ENTITIES.JORIO;     // ~31.0% (coworker target +25pts)
-        else entity = this.ENTITIES.CRUZADO;                    // ~45.0% (primary target +10pts)
+        if (roll > 0.985) entity = this.ENTITIES.ENERGETICO;       // ~1.5% (rare energy drink boost +90pts, +9s)
+        else if (roll > 0.965) entity = this.ENTITIES.DOCINHO;      // ~2.0% (rare sweet bonus +60pts, +6s)
+        else if (roll > 0.935) entity = this.ENTITIES.EMAIL;        // ~3.0% (boss 2 e-mails penalty -60pts, -15s)
+        else if (roll > 0.900) entity = this.ENTITIES.AC;           // ~3.5% (freezing AC remote hazard -30pts, -10s)
+        else if (roll > 0.825) entity = this.ENTITIES.COFFEE;       // ~7.5% (coffee time boost +30pts, +3s)
+        else if (roll > 0.750) entity = this.ENTITIES.SENA;         // ~7.5% (sabotage hazard -15pts, -5s)
+        else if (roll > 0.450) entity = this.ENTITIES.JORIO;        // ~30.0% (coworker target +25pts)
+        else entity = this.ENTITIES.CRUZADO;                       // ~45.0% (primary target +10pts)
 
         hole.entity = entity;
 
@@ -3509,6 +3999,7 @@ class ArcadeWhackGame {
         mole.faceMesh.visible = false;
         mole.coffeeGroup.visible = false;
         mole.docinhoGroup.visible = false;
+        mole.energeticoGroup.visible = false;
         mole.emailGroup.visible = false;
         mole.acGroup.visible = false;
 
@@ -3518,6 +4009,9 @@ class ArcadeWhackGame {
         } else if (entity.type === 'docinho') {
             mole.docinhoGroup.visible = true;
             mole.ringMesh.material.color.setHex(0xffe600); // Yellow ring
+        } else if (entity.type === 'energetico') {
+            mole.energeticoGroup.visible = true;
+            mole.ringMesh.material.color.setHex(0xffe600); // Golden ring!
         } else if (entity.type === 'email') {
             mole.emailGroup.visible = true;
             mole.ringMesh.material.color.setHex(0xff0033); // Danger RED ring!
@@ -3991,9 +4485,18 @@ window.addEventListener('DOMContentLoaded', () => {
             h.entity = window.game.ENTITIES.AC;
             m.coffeeGroup.visible = false;
             m.docinhoGroup.visible = false;
+            m.energeticoGroup.visible = false;
             m.emailGroup.visible = false;
             m.acGroup.visible = true;
             if (m.ringMesh) m.ringMesh.material.color.setHex(0xff0033);
+        } else if (testProp === 'energetico') {
+            h.entity = window.game.ENTITIES.ENERGETICO;
+            m.coffeeGroup.visible = false;
+            m.docinhoGroup.visible = false;
+            m.emailGroup.visible = false;
+            m.acGroup.visible = false;
+            m.energeticoGroup.visible = true;
+            if (m.ringMesh) m.ringMesh.material.color.setHex(0xffe600);
         }
         h.isUp = true;
         m.group.visible = true;
