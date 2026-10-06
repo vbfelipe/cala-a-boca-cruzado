@@ -814,8 +814,8 @@ class ArcadeWhackGame {
             CRUZADO: { type: 'cruzado', points: 10, bonusTime: 0, yell: 'CALA A BOCA, CRUZADO! +10', color: 0x00f0ff },
             SENA: { type: 'sena', points: -15, bonusTime: -5, yell: 'SAI SENA! -15 PTS -5s', color: 0xff0033 },
             JORIO: { type: 'jorio', points: 25, bonusTime: 0, yell: 'JÓRIO VELHO! +25', color: 0x00f0ff },
-            COFFEE: { type: 'coffee', points: 20, bonusTime: 3, yell: 'CAFEZINHO! +20 PTS +3s', color: 0xffe600 },
-            DOCINHO: { type: 'docinho', points: 50, bonusTime: 6, yell: 'DOCINHO! +50 PTS +6s', color: 0xffe600 },
+            COFFEE: { type: 'coffee', points: 30, bonusTime: 3, yell: 'CAFEZINHO! +30 PTS +3s', color: 0xffe600 },
+            DOCINHO: { type: 'docinho', points: 60, bonusTime: 6, yell: 'DOCINHO! +60 PTS +6s', color: 0xffe600 },
             EMAIL: { type: 'email', points: -60, bonusTime: -15, yell: 'DOIS E-MAILS! -60 PTS -15s', color: 0xff0033 },
             AC: { type: 'ac', points: -30, bonusTime: -10, yell: 'AR NO 15°C! -30 PTS -10s', color: 0xff0033 }
         };
@@ -3495,10 +3495,10 @@ class ArcadeWhackGame {
 
         const roll = Math.random();
         let entity = this.ENTITIES.CRUZADO;
-        if (roll > 0.975) entity = this.ENTITIES.DOCINHO;       // ~2.5% (rare sweet bonus +50pts, +6s)
+        if (roll > 0.975) entity = this.ENTITIES.DOCINHO;       // ~2.5% (rare sweet bonus +60pts, +6s)
         else if (roll > 0.945) entity = this.ENTITIES.EMAIL;     // ~3.0% (boss 2 e-mails penalty -60pts, -15s)
         else if (roll > 0.910) entity = this.ENTITIES.AC;        // ~3.5% (freezing AC remote hazard -30pts, -10s)
-        else if (roll > 0.835) entity = this.ENTITIES.COFFEE;    // ~7.5% (coffee time boost +20pts, +3s)
+        else if (roll > 0.835) entity = this.ENTITIES.COFFEE;    // ~7.5% (coffee time boost +30pts, +3s)
         else if (roll > 0.760) entity = this.ENTITIES.SENA;      // ~7.5% (sabotage hazard -15pts, -5s)
         else if (roll > 0.450) entity = this.ENTITIES.JORIO;     // ~31.0% (coworker target +25pts)
         else entity = this.ENTITIES.CRUZADO;                    // ~45.0% (primary target +10pts)
