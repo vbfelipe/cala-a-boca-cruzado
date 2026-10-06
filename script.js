@@ -812,7 +812,7 @@ class ArcadeWhackGame {
         // Entities config (scaled down by /10 for tighter, balanced arcade scoring)
         this.ENTITIES = {
             CRUZADO: { type: 'cruzado', points: 10, bonusTime: 0, yell: 'CALA A BOCA, CRUZADO! +10', color: 0x00f0ff },
-            SENA: { type: 'sena', points: -30, bonusTime: 0, yell: 'SAI SENA! -30', color: 0xff0033 },
+            SENA: { type: 'sena', points: -15, bonusTime: -5, yell: 'SAI SENA! -15 PTS -5s', color: 0xff0033 },
             JORIO: { type: 'jorio', points: 25, bonusTime: 0, yell: 'JÓRIO VELHO! +25', color: 0x00f0ff },
             COFFEE: { type: 'coffee', points: 20, bonusTime: 3, yell: 'CAFEZINHO! +20 PTS +3s', color: 0xffe600 },
             DOCINHO: { type: 'docinho', points: 50, bonusTime: 6, yell: 'DOCINHO! +50 PTS +6s', color: 0xffe600 },
@@ -2954,10 +2954,11 @@ class ArcadeWhackGame {
 
         this.triggerHeadExplosion(hole, entity);
 
-        // Sena penalty handling: -30 points, green smoke, combo break, stress penalty!
+        // Sena penalty handling: -15 points, -5s penalty, green smoke, combo break, stress penalty!
         if (entity.type === 'sena') {
             this.triggerGreenSmoke(hole);
-            this.score = Math.max(0, this.score - 30);
+            this.score = Math.max(0, this.score - 15);
+            this.timeLeft = Math.max(0, this.timeLeft - 5);
             this.breakCombo('sena');
             if (this.isFuryMode) {
                 // Sena interrupts fury flow: penalizes remaining fever time!
@@ -2972,6 +2973,18 @@ class ArcadeWhackGame {
                     scoreEl.style.color = '';
                     scoreEl.style.transform = '';
                 }, 300);
+            }
+            // Flash timer HUD in danger red for -5s penalty
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) {
+                timeEl.style.transform = 'scale(1.25)';
+                timeEl.style.color = '#ff3366';
+                timeEl.style.textShadow = '0 0 16px #ff3366';
+                setTimeout(() => {
+                    timeEl.style.transform = '';
+                    timeEl.style.color = '';
+                    timeEl.style.textShadow = '';
+                }, 400);
             }
         } else if (entity.type === 'email') {
             // Bad Mole Hazard: Boss sent 2 e-mails! -60 pts & -15s penalty & combo break!
@@ -3486,7 +3499,7 @@ class ArcadeWhackGame {
         else if (roll > 0.945) entity = this.ENTITIES.EMAIL;     // ~3.0% (boss 2 e-mails penalty -60pts, -15s)
         else if (roll > 0.910) entity = this.ENTITIES.AC;        // ~3.5% (freezing AC remote hazard -30pts, -10s)
         else if (roll > 0.835) entity = this.ENTITIES.COFFEE;    // ~7.5% (coffee time boost +20pts, +3s)
-        else if (roll > 0.760) entity = this.ENTITIES.SENA;      // ~7.5% (sabotage hazard -30pts)
+        else if (roll > 0.760) entity = this.ENTITIES.SENA;      // ~7.5% (sabotage hazard -15pts, -5s)
         else if (roll > 0.450) entity = this.ENTITIES.JORIO;     // ~31.0% (coworker target +25pts)
         else entity = this.ENTITIES.CRUZADO;                    // ~45.0% (primary target +10pts)
 
