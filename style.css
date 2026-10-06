@@ -869,7 +869,7 @@ select,
 
 /* Rules Modal System */
 .modal-box.rules-modal-box {
-    width: 96%;
+    width: min(640px, calc(100% - 24px));
     max-width: 640px;
     max-height: calc(100% - 24px);
     display: flex;
@@ -878,11 +878,14 @@ select,
     text-align: left;
     background: #11091e;
     border: 3px solid var(--neon-pink);
+    border-radius: 12px;
     box-shadow: 0 0 35px var(--neon-pink-glow), inset 0 0 15px rgba(255, 0, 119, 0.2);
+    box-sizing: border-box;
 }
 
 .rules-modal-box .modal-header {
     margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .rules-modal-box .modal-header h2 {
@@ -912,6 +915,7 @@ select,
     flex-direction: column;
     gap: 14px;
     flex: 1;
+    min-height: 0;
 }
 
 .rules-content::-webkit-scrollbar {
@@ -1091,6 +1095,7 @@ select,
     display: flex;
     justify-content: center;
     margin-top: 4px;
+    flex-shrink: 0;
 }
 
 .rules-modal-box #close-rules-btn {
@@ -1615,38 +1620,26 @@ select,
         padding: 5px 6px;
         font-size: 0.42rem;
     }
-
-    .modal-box.rules-modal-box {
-        padding: 12px 10px;
-    }
-
-    .rules-section {
-        padding: 9px 8px;
-    }
-
-    .rule-target-card {
-        padding: 8px 8px;
-    }
-
-    .rule-target-card .target-badge {
-        font-size: 0.40rem;
-        padding: 3px 5px;
-    }
 }
 
 /* Modals on small / short windows */
 @media (max-width: 600px),
 (max-height: 650px) {
+    .modal {
+        padding: 10px;
+    }
+
     .modal-box {
         padding: 14px 16px;
-        max-height: 94vh;
+        max-height: calc(100% - 20px);
     }
 
     /* Rules Modal Responsive Mobile Tweaks */
     .modal-box.rules-modal-box {
-        padding: 15px 12px;
-        width: 95%;
-        max-height: 94vh;
+        padding: 14px 12px;
+        width: min(640px, calc(100% - 16px));
+        max-height: calc(100% - 20px);
+        border-radius: 10px;
     }
 
     .rules-modal-box .modal-header h2 {
@@ -1792,6 +1785,32 @@ select,
 
     .footer-buttons-row {
         margin-bottom: clamp(6px, 1.5vh, 12px);
+    }
+}
+
+/* Modals on very small screens (<= 420px) */
+@media (max-width: 420px) {
+    .modal {
+        padding: 8px 6px;
+    }
+
+    .modal-box.rules-modal-box {
+        padding: 12px 10px;
+        width: min(640px, calc(100% - 12px));
+        max-height: calc(100% - 16px);
+    }
+
+    .rules-section {
+        padding: 9px 8px;
+    }
+
+    .rule-target-card {
+        padding: 8px 8px;
+    }
+
+    .rule-target-card .target-badge {
+        font-size: 0.40rem;
+        padding: 3px 5px;
     }
 }
 
@@ -2183,7 +2202,13 @@ select,
 @container game (max-height: 650px) {
     .modal-box {
         padding: 14px 16px;
-        max-height: 94%;
+        max-height: calc(100% - 20px);
+    }
+
+    .modal-box.rules-modal-box {
+        padding: 12px 10px;
+        max-height: calc(100% - 16px);
+        width: calc(100% - 16px);
     }
 
     .modal-header h2 {
@@ -2263,7 +2288,13 @@ select,
 
 .game-window.h-compact .modal-box {
     padding: 14px 16px;
-    max-height: 94%;
+    max-height: calc(100% - 20px);
+}
+
+.game-window.h-compact .modal-box.rules-modal-box {
+    padding: 12px 10px;
+    max-height: calc(100% - 16px);
+    width: calc(100% - 16px);
 }
 
 .game-window.h-compact .modal-header h2 {
