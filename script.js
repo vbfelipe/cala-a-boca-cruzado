@@ -812,7 +812,7 @@ class ArcadeWhackGame {
         // Entities config (scaled down by /10 for tighter, balanced arcade scoring)
         this.ENTITIES = {
             CRUZADO: { type: 'cruzado', points: 10, bonusTime: 0, yell: 'CALA A BOCA, CRUZADO! +10', color: 0x00f0ff },
-            SENA: { type: 'sena', points: -30, bonusTime: 0, yell: 'SAI SENA! -30', color: 0x2ecc71 },
+            SENA: { type: 'sena', points: -30, bonusTime: 0, yell: 'SAI SENA! -30', color: 0xff0033 },
             JORIO: { type: 'jorio', points: 25, bonusTime: 0, yell: 'JÓRIO VELHO! +25', color: 0x00f0ff },
             COFFEE: { type: 'coffee', points: 20, bonusTime: 3, yell: 'CAFEZINHO! +20 PTS +3s', color: 0xffe600 },
             DOCINHO: { type: 'docinho', points: 50, bonusTime: 6, yell: 'DOCINHO! +50 PTS +6s', color: 0xffe600 },
@@ -2520,7 +2520,7 @@ class ArcadeWhackGame {
         if (entity.type === 'sena') {
             // Silence normal rewarding explosion and play ONLY the comedic fart sound!
             this.sound.playFartSound();
-            hole.ledRing.material.color.setHex(0x2ecc71); // Toxic green LED ring flash
+            hole.ledRing.material.color.setHex(0xff0033); // Danger RED LED ring flash
             setTimeout(() => {
                 if (hole.ledRing) hole.ledRing.material.color.setHex(0x00f0ff);
             }, 300);
@@ -2670,16 +2670,15 @@ class ArcadeWhackGame {
 
         // Color mapped to ring colors:
         // - Cruzado & Jório: Cyan
-        // - Sena: Green
-        // - Bad Moles (2 E-mails & Ar no 15°C): Danger Red
+        // - Bad Moles (Sena, 2 E-mails & Ar no 15°C): Danger Red
         // - Cafezinho & Docinho: Signature Gold / Yellow
         // - Fury Mode: Neon Pink
         if (type === 'cruzado' || type === 'jorio' || type === 'curly' || type === 'cyan') {
             shoutEl.classList.add('cyan');
-        } else if (type === 'sena' || type === 'green') {
-            shoutEl.classList.add('green');
-        } else if (type === 'email' || type === 'ac' || type === 'red') {
+        } else if (type === 'sena' || type === 'email' || type === 'ac' || type === 'red') {
             shoutEl.classList.add('red');
+        } else if (type === 'green') {
+            shoutEl.classList.add('green');
         } else if (type === 'fury') {
             shoutEl.classList.add('fury');
         } else {
@@ -3516,7 +3515,7 @@ class ArcadeWhackGame {
             mole.faceMesh.visible = true;
             mole.faceMesh.material.map = this.textures.senaToken;
             mole.faceMesh.material.needsUpdate = true;
-            mole.ringMesh.material.color.setHex(0x2ecc71); // Only the Green ring!
+            mole.ringMesh.material.color.setHex(0xff0033); // Danger RED ring!
         } else {
             mole.faceMesh.visible = true;
             if (entity.type === 'cruzado') mole.faceMesh.material.map = this.textures.cruzadoToken;

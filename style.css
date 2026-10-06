@@ -994,14 +994,10 @@ select,
     box-shadow: 0 0 12px rgba(255, 230, 0, 0.18);
 }
 
-.rule-target-card.red {
+.rule-target-card.red,
+.rule-target-card.green {
     border: 1.5px solid #ff0044;
     box-shadow: 0 0 12px rgba(255, 0, 68, 0.22);
-}
-
-.rule-target-card.green {
-    border: 1.5px solid #2ecc71;
-    box-shadow: 0 0 14px rgba(46, 204, 113, 0.25);
 }
 
 .rule-target-card .target-name {
@@ -1022,14 +1018,10 @@ select,
     text-shadow: 0 0 8px rgba(255, 230, 0, 0.5);
 }
 
-.rule-target-card.red .target-name {
+.rule-target-card.red .target-name,
+.rule-target-card.green .target-name {
     color: #ff3b6a;
     text-shadow: 0 0 8px rgba(255, 59, 106, 0.5);
-}
-
-.rule-target-card.green .target-name {
-    color: #2ecc71;
-    text-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
 }
 
 .rule-target-card .target-desc {
@@ -1067,16 +1059,11 @@ select,
 }
 
 .rule-target-card.red .target-badge,
-.rule-target-card .target-badge.red {
+.rule-target-card .target-badge.red,
+.rule-target-card.green .target-badge.green {
     background: rgba(255, 0, 68, 0.25);
     color: #ff859e;
     border: 1px solid rgba(255, 0, 68, 0.45);
-}
-
-.rule-target-card.green .target-badge.green {
-    background: rgba(46, 204, 113, 0.22);
-    color: #79f2ab;
-    border: 1px solid rgba(46, 204, 113, 0.4);
 }
 
 .rules-modal-box .modal-actions {
@@ -1276,9 +1263,9 @@ select,
 }
 
 .breakdown-pill.sena {
-    border: 1.5px solid #2ecc71;
-    color: #2ecc71;
-    box-shadow: 0 0 8px rgba(46, 204, 113, 0.12);
+    border: 1.5px solid #ff0033;
+    color: #ff4d6d;
+    box-shadow: 0 0 8px rgba(255, 0, 51, 0.15);
 }
 
 .breakdown-pill.coffee {
